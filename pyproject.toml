@@ -1,7 +1,7 @@
 [project]
 name = "mle-model-deployment-project"
 version = "0.1.0"
-requires-python = ">=3.13"
+requires-python = ">=3.13.17"
 dependencies = [
     "click>=8.5.0",
     "fastapi>=0.141.1",
@@ -29,3 +29,8 @@ dev = [
     "nbformat>=5.11.1",
     "pytest>=9.1.1",
 ]
+
+[tool.uv]
+required-version = ">=0.13.5"
+# Apply certificate fixes without adding unused runtime packages.
+constraint-dependencies = ["certifi>=2026.10.19", "pip>=26.2.2"]
