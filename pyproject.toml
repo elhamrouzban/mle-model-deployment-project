@@ -23,6 +23,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "apache-airflow>=3,<4",
     "httpx2>=2.13.1",
     "ipykernel>=7.3.0",
     "ipywidgets>=8.1.9",

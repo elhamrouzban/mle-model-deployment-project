@@ -118,14 +118,27 @@ These are initial assumptions, subject to evaluation.
 
 **Note:** Recorded final trip distance and dropoff time are unavailable at pickup, so they should not be used as inputs for a pickup-time prediction model.
 
-## 6. Load / Prepare Data — Next
+## 6. Load / Prepare Data — Completed
 
-**Planned path:** `data/processed/`
+**Code:** `src/data_pipeline/load.py`
 
-- Load raw Parquet data.
-- Apply transformation.
-- Prepare training and validation datasets.
-- Save processed data if needed.
+**Input:** Cleaned DataFrame from `transform_data()`.
+
+**Output path:** `data/processed/yellow_tripdata_2025-01_clean.parquet`
+
+**Process:**
+- Create `data/processed/` if it doesn't exist.
+- Save cleaned data in Parquet format using Pandas.
+- Preserve all cleaned records and engineered features.
+- Make processed data reusable for model training.
+
+**Status:** Successfully executed and verified.
+
+
+
+
+
+
 
 ## 7. Model Training — Planned
 
