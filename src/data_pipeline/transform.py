@@ -26,6 +26,6 @@ def transform_data(df: pd.DataFrame) -> pd.DataFrame:
 
     # Create features for model training
     df["pickup_hour"] = df["tpep_pickup_datetime"].dt.hour
-    df["pickup_day_of_week"] = df["tpep_pickup_datetime"].dt.dayofweek
+    df["pickup_day_of_week"] = df["tpep_pickup_datetime"].dt.day_of_week
 
     return df.reset_index(drop=True)
