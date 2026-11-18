@@ -21,7 +21,6 @@ def transform_data(df: pd.DataFrame) -> pd.DataFrame:
     df = df[df["duration"].between(1, 180)].copy()
     df = df[df["trip_distance"] > 0].copy()
 
-    # Remove unrealistic average speeds
     speed_mph = df["trip_distance"] / (df["duration"] / 60)
     df = df[speed_mph <= 65].copy()
 
