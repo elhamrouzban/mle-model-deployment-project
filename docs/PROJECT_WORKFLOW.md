@@ -118,7 +118,7 @@ These are initial assumptions, subject to evaluation.
 
 **Note:** Recorded final trip distance and dropoff time are unavailable at pickup, so they should not be used as inputs for a pickup-time prediction model.
 
-## 6. Load / Prepare Data — Completed
+## 6. Load / Prepare Data
 
 **Code:** `src/data_pipeline/load.py`
 
@@ -136,7 +136,71 @@ These are initial assumptions, subject to evaluation.
 
 
 
+## 7. Unit Testing — Completed
 
+**Tool:** pytest 9.2.0
+
+**Test directory:** `tests/`
+
+| Test file | Purpose | Result |
+|---|---|---|
+| `test_transform.py` | Validate duration calculation, feature engineering, and invalid duration filtering | 2 Passed |
+| `test_load.py` | Verify Parquet file creation and saved data integrity | 1 Passed |
+| `test_extract.py` | Verify dataset download using a mocked HTTP response | 1 Passed |
+| `test_airflow_dag.py` | Verify the updated two-task DAG structure (`extract → transform_and_load`) and task dependencies | 1 Passed |
+
+**Testing techniques:**
+- `assert`: Validate expected results.
+- `tmp_path`: Create temporary test directories.
+- `monkeypatch`: Replace dependencies during testing.
+- `DagBag`: Validate Airflow DAG imports, task definitions, and dependencies.
+
+**Command:**
+
+```bash
+uv run python -m pytest tests/ -v
+```
+
+**Status:** All five individual tests passed. The updated Airflow DAG structural test passed. Full test suite execution and actual Airflow pipeline execution have not yet been verified.
+
+## 8. Workflow Orchestration — Apache Airflow
+
+**Tool:** Apache Airflow 3
+
+**DAG file:** `dags/taxi_etl_dag.py`
+
+**Pipeline:** `extract → transform_and_load`
+
+**Purpose:**
+- Automate ETL execution.
+- Manage task dependencies.
+- Monitor pipeline execution and failures.
+
+**Implementation:**
+- `@dag`: Define the workflow.
+- `@task`: Define individual tasks.
+- `>>`: Set execution order.
+- `dag_id="nyc_taxi_etl"`: Unique workflow identifier.
+- `schedule=None`: Manual execution.
+- `catchup=False`: Disable automatic catchup of past scheduled runs.
+- `tags=["nyc-taxi", "etl"]`: Organize the DAG in the Airflow UI.
+
+**Tasks:**
+- `extract`: Download the January 2025 NYC Yellow Taxi dataset using `download_data()`.
+- `transform_and_load`: Read the raw Parquet file, clean and engineer features using `transform_data()`, and save the processed dataset using `load_data()`.
+
+**Design decisions:**
+- Reuse existing ETL functions through direct Python imports instead of `subprocess.run()`.
+- Combine Transform and Load in one Airflow task to avoid transferring a large DataFrame through XCom.
+- Avoid intermediate staging files and redundant disk usage.
+
+**Testing:** `tests/test_airflow_dag.py`
+- DAG loads successfully.
+- Both tasks (`extract`, `transform_and_load`) exist.
+- Task dependency `extract → transform_and_load` is correct.
+- Structural test passed.
+
+**Status:** DAG structure tested successfully. Actual Airflow execution pending.
 
 
 
