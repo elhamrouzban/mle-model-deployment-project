@@ -1,7 +1,7 @@
 
 import pandas as pd
 
-from src.data_pipeline.transform import transform_data
+from taxi_ml.data_pipeline.transform import transform_data
 
 
 def test_feature_engineering():

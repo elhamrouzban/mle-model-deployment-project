@@ -1,7 +1,7 @@
 
 import pandas as pd
 
-from src.data_pipeline import load
+from taxi_ml.data_pipeline import load
 
 
 def test_load_data(tmp_path, monkeypatch):
