@@ -136,36 +136,86 @@ These are initial assumptions, subject to evaluation.
 
 
 
-## 7. Unit Testing — Completed
+## 7. Unit and Integration Testing — Completed
 
 **Tool:** pytest 9.2.0
 
 **Test directory:** `tests/`
+
+### Test Coverage
 
 | Test file | Purpose | Result |
 |---|---|---|
 | `test_transform.py` | Validate duration calculation, feature engineering, and invalid duration filtering | 2 Passed |
 | `test_load.py` | Verify Parquet file creation and saved data integrity | 1 Passed |
 | `test_extract.py` | Verify dataset download using a mocked HTTP response | 1 Passed |
-| `test_airflow_dag.py` | Verify the updated two-task DAG structure (`extract → transform_and_load`) and task dependencies | 1 Passed |
+| `test_airflow_dag.py` | Verify DAG imports, task definitions, and dependencies (`extract → transform_and_load`) | 1 Passed |
+| `test_etl_integration.py` | Verify the complete Extract → Transform → Load process with sample data and temporary files | 1 Passed |
 
-**Testing techniques:**
+**Total:** 6 tests passed individually.
+
+### Testing Techniques
+
 - `assert`: Validate expected results.
-- `tmp_path`: Create temporary test directories.
-- `monkeypatch`: Replace dependencies during testing.
-- `DagBag`: Validate Airflow DAG imports, task definitions, and dependencies.
+- `tmp_path`: Create isolated temporary directories for test files.
+- `monkeypatch`: Mock HTTP requests and redirect file operations without modifying project data.
+- `DagBag`: Verify that Airflow can load the DAG and recognize its task dependencies.
+- `BytesIO`: Create an in-memory Parquet file to simulate a dataset download.
 
-**Command:**
+### ETL Integration Test
+
+The integration test verifies that the existing ETL functions work together correctly.
+
+**Process:**
+
+1. Create a sample dataset containing one valid and one invalid taxi trip.
+2. Simulate the dataset download without accessing the internet.
+3. Extract the raw Parquet file into a temporary directory.
+4. Transform the data and filter out the invalid trip.
+5. Save the cleaned dataset using the existing `load_data()` function.
+6. Read the output and validate its contents.
+
+**Validation:**
+- The processed Parquet file exists.
+- The invalid trip is removed.
+- The valid trip has a duration of 15 minutes.
+- `pickup_hour` and `pickup_day_of_week` are correctly generated.
+- All four model features are present: `PULocationID`, `DOLocationID`, `pickup_hour`, and `pickup_day_of_week`.
+
+The integration test uses temporary directories and does not modify the project's actual raw or processed datasets.
+
+### Run Tests
+
+**Full test suite:**
 
 ```bash
 uv run python -m pytest tests/ -v
 ```
 
-**Status:** All five individual tests passed. The updated Airflow DAG structural test passed. Full test suite execution and actual Airflow pipeline execution have not yet been verified.
+**ETL integration test:**
+
+```bash
+uv run python -m pytest tests/test_etl_integration.py -v
+```
+
+**Airflow DAG structure test:**
+
+```bash
+uv run python -m pytest tests/test_airflow_dag.py -v
+```
+
+### Status
+
+**Completed:** All six tests passed individually, including the ETL integration test and the updated Airflow DAG structure test.
+
+**Verified separately:** The Airflow DAG was executed successfully, producing the raw and processed Parquet files.
+
+**Pending:** Execution of the complete pytest test suite in a single run.
+
 
 ## 8. Workflow Orchestration — Apache Airflow
 
-**Tool:** Apache Airflow 3
+**Tool:** Apache Airflow 3.4.0
 
 **DAG file:** `dags/taxi_etl_dag.py`
 
@@ -179,28 +229,47 @@ uv run python -m pytest tests/ -v
 **Implementation:**
 - `@dag`: Define the workflow.
 - `@task`: Define individual tasks.
-- `>>`: Set execution order.
-- `dag_id="nyc_taxi_etl"`: Unique workflow identifier.
+- `>>`: Set task execution order.
+- `dag_id="nyc_taxi_etl"`: Unique DAG identifier.
 - `schedule=None`: Manual execution.
-- `catchup=False`: Disable automatic catchup of past scheduled runs.
-- `tags=["nyc-taxi", "etl"]`: Organize the DAG in the Airflow UI.
+- `catchup=False`: Disable automatic catchup.
+- `tags`: Organize DAGs in the Airflow UI.
+- Import ETL functions directly from the installable `taxi_ml` Python package.
 
 **Tasks:**
-- `extract`: Download the January 2025 NYC Yellow Taxi dataset using `download_data()`.
-- `transform_and_load`: Read the raw Parquet file, clean and engineer features using `transform_data()`, and save the processed dataset using `load_data()`.
+- `extract`: Download the January 2025 NYC Yellow Taxi dataset.
+- `transform_and_load`: Clean the raw data, engineer features, and save the processed Parquet file.
 
-**Design decisions:**
-- Reuse existing ETL functions through direct Python imports instead of `subprocess.run()`.
-- Combine Transform and Load in one Airflow task to avoid transferring a large DataFrame through XCom.
-- Avoid intermediate staging files and redundant disk usage.
+**Design Decisions:**
+- Reuse existing ETL functions without `subprocess.run()`.
+- Combine Transform and Load to avoid transferring a large DataFrame through XCom.
+- Avoid unnecessary intermediate staging files.
 
-**Testing:** `tests/test_airflow_dag.py`
-- DAG loads successfully.
-- Both tasks (`extract`, `transform_and_load`) exist.
-- Task dependency `extract → transform_and_load` is correct.
-- Structural test passed.
+**Metadata Database:**
+- SQLite is used for local development.
+- Database location: `~/airflow/airflow.db`
+- Database schema initialized using `airflow db migrate`.
 
-**Status:** DAG structure tested successfully. Actual Airflow execution pending.
+**Testing:**
+- DAG structure verified using `tests/test_airflow_dag.py`.
+- Both tasks executed successfully through Airflow.
+- Raw and processed Parquet files generated successfully.
+- DAG run reached the `success` state.
+
+**Execution Command:**
+
+```bash
+uv run airflow dags test nyc_taxi_etl -f dags/taxi_etl_dag.py
+```
+
+**Status:** DAG implementation, structural testing, and actual ETL execution completed successfully.
+
+
+
+
+
+
+
 
 
 
