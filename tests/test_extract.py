@@ -1,5 +1,5 @@
 
-from src.data_pipeline import extract
+from taxi_ml.data_pipeline import extract
 
 
 def test_download_data(tmp_path, monkeypatch):
