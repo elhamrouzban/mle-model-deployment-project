@@ -4,9 +4,9 @@ from pathlib import Path
 import pandas as pd
 from airflow.sdk import dag, task
 
-from src.data_pipeline.extract import download_data
-from src.data_pipeline.transform import transform_data
-from src.data_pipeline.load import load_data
+from taxi_ml.data_pipeline.extract import download_data
+from taxi_ml.data_pipeline.transform import transform_data
+from taxi_ml.data_pipeline.load import load_data
 
 
 RAW_PATH = Path("data/raw/yellow_tripdata_2025-01.parquet")
